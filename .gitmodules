@@ -1,0 +1,3 @@
+[submodule "liburkel"]
+	path = liburkel
+	url = https://github.com/chjj/liburkel
