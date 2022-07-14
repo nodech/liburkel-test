@@ -1,8 +1,6 @@
 'use strict';
 
-const assert = require('assert');
-
-function *random_stuff(seed) {
+function *randomStuff(seed) {
   let next = seed;
   let result;
 
@@ -25,8 +23,8 @@ function *random_stuff(seed) {
   }
 }
 
-function *random_stuff_byte(seed) {
-  const rand = random_stuff(seed);
+function *randomStuffByte(seed) {
+  const rand = randomStuff(seed);
 
   for (;;) {
     yield rand.next().value & 0xff;
@@ -41,7 +39,7 @@ function mul32(a, b) {
 
   let lor = 0;
   let hir = 0;
-  
+
   lor += loa * lob;
   hir += lor >>> 16;
   lor &= 0xffff;
@@ -68,5 +66,5 @@ function mul32rp(a, b) {
 
 exports.mul32 = mul32;
 exports.mul32rp = mul32rp;
-exports.random_stuff = random_stuff;
-exports.random_stuff_byte = random_stuff_byte;
+exports.randomStuff = randomStuff;
+exports.randomStuffByte = randomStuffByte;

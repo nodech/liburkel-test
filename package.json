@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/nodech/liburkel-test#readme",
   "dependencies": {
+    "bfile": "^0.2.2",
     "urkel": "^1.0.2"
   }
 }
