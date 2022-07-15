@@ -28,7 +28,8 @@ add_subdirectory(liburkel)
 # List of tests
 list(APPEND targets rand-test
   empty-tree-test
-  single-root-tree-test)
+  single-root-tree-test
+  ten-by-ten-test)
 
 foreach (target IN LISTS targets)
   add_executable(${target} ${general_sources} src/${target}.c)

@@ -21,6 +21,7 @@ int main() {
   assert(urkel_tx_insert(tx, key, val, sizeof(val)));
   assert(urkel_tx_commit(tx));
 
+  urkel_tx_destroy(tx);
   urkel_close(db);
   return 0;
 }
