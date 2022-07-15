@@ -11,5 +11,18 @@
  */
 
 exports.tests = [
-  { name: 'rand-test', desc: 'Random generator is the same.' }
+  {
+    name: 'rand-test',
+    desc: 'Random generator is the same.',
+    setup: false
+  },
+  {
+    name: 'empty-tree-test',
+    desc: 'Empty tree is the same.',
+    setup: false
+  },
+  {
+    name: 'single-root-tree-test',
+    desc: 'Insert single entry'
+  }
 ];

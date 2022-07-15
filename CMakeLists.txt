@@ -3,6 +3,7 @@ project(urkel-integration LANGUAGES C)
 
 set(priv_options)
 set(general_sources)
+set(targets)
 
 if (CMAKE_C_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
   list(APPEND priv_options -pedantic
@@ -21,7 +22,16 @@ set(CMAKE_C_STANDARD 90)
 
 list(APPEND general_sources src/util.c)
 
-add_executable(rand-test ${general_sources} src/rand-test.c)
+# Add liburkel
+add_subdirectory(liburkel)
 
-# config compiler
-target_compile_options(rand-test PRIVATE ${priv_options})
+# List of tests
+list(APPEND targets rand-test
+  empty-tree-test
+  single-root-tree-test)
+
+foreach (target IN LISTS targets)
+  add_executable(${target} ${general_sources} src/${target}.c)
+  target_compile_options(${target} PRIVATE ${priv_options})
+  target_link_libraries(${target} PUBLIC urkel_static)
+endforeach()

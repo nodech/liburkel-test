@@ -6,11 +6,6 @@ const cp = require('child_process');
 const {randomBytes} = require('crypto');
 const fs = require('bfile');
 
-function getTmpDir() {
-  const bytes = randomBytes(8).toString('hex');
-  return path.join(os.tmpdir(), 'liburkel-integration-' + bytes);
-}
-
 class TestError extends Error {
   constructor(message, step, name, code) {
     super(message);
@@ -19,6 +14,11 @@ class TestError extends Error {
     this.name = name;
     this.code = code == null ? -1 : code;
   }
+}
+
+function getTmpDir() {
+  const bytes = randomBytes(8).toString('hex');
+  return path.join(os.tmpdir(), 'liburkel-integration-' + bytes);
 }
 
 // Configuration
@@ -48,10 +48,21 @@ function exec(name, cwd, timeout) {
   });
 }
 
+async function setupTree(root) {
+  const treePath = path.join(root, 'tree');
+
+  await fs.mkdirp(treePath);
+  await fs.writeFile(path.join(treePath, '0000000001'), '');
+  await fs.writeFile(path.join(treePath, 'meta'), Buffer.alloc(32, 0x89));
+}
+
 const tmpdir = getTmpDir();
 (async () => {
   console.log(`Running checks in ${tmpdir}`);
-  for (const {name, desc} of tests) {
+  for (const test of tests) {
+    const {name, desc} = test;
+    let setup = test.setup;
+
     console.log(`Testing ${name}: ${desc}`);
     // prepare directory
     const testdir = path.join(tmpdir, name);
@@ -60,6 +71,15 @@ const tmpdir = getTmpDir();
 
     await fs.mkdirp(cdir);
     await fs.mkdirp(jsdir);
+
+    if (setup == null)
+      setup = true;
+
+    if (setup) {
+      // Make trees deterministic.
+      await setupTree(cdir);
+      await setupTree(jsdir);
+    }
 
     let cmd, res;
 
@@ -119,6 +139,10 @@ const tmpdir = getTmpDir();
       console.error(`Test failed for: ${e.name}, exit code: ${e.code}`);
       console.error(e.message);
       break;
+    }
+    default: {
+      console.error('Test runner failed.');
+      console.error(e);
     }
   }
   process.exit(1);

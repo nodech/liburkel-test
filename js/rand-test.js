@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs');
-const {randomStuffByte} = require('./rand');
+const {randomStuffByte} = require('../lib/rand');
 
 const SEED = 200;
 const fd = fs.openSync('rand', 'w');

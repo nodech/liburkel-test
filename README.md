@@ -10,6 +10,7 @@ Liburkel integration tests
 ```
 
 ### Running tests
+From the root of the project run:
 ```
   $ node test-runner.js
 ```
