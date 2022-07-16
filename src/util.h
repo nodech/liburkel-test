@@ -1,6 +1,7 @@
 #ifndef _URKEL_INTEGRATION_UTIL_H
 #define _URKEL_INTEGRATION_UTIL_H
-#include <inttypes.h>
+
+#include <stdint.h>
 
 int32_t
 random_stuff(int32_t *seed);

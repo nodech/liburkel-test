@@ -32,5 +32,9 @@ exports.tests = [
   {
     name: 'empty-commit',
     desc: 'Commit empty transaction.'
+  },
+  {
+    name: 'random-tree',
+    desc: 'Generate random tree'
   }
 ];

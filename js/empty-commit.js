@@ -22,13 +22,17 @@ async function insert(txn, n) {
   await tree.open();
 
   let k = 0;
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 2; i++) {
     const txn = tree.txn();
     await insert(txn, k++);
     await txn.commit();
+
+    // add empty commit on top
+    const txn2 = tree.txn();
+    await txn2.commit();
   }
 
-  // add empty commit on top
+  // one last empty commit
   const txn = tree.txn();
   await txn.commit();
 

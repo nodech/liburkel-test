@@ -1,14 +1,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <inttypes.h>
+#include <stdint.h>
 #include <urkel.h>
 
 #include "util.h"
 
 int main() {
   int k = 0;
-  int i, j;
+  int i;
   uint8_t key[4], hash[32], val[4];
   urkel_t *db;
   urkel_tx_t *tx;
@@ -16,7 +16,7 @@ int main() {
   db = urkel_open("./tree");
   assert(db != NULL);
 
-  for (i = 0; i < 1; i++) {
+  for (i = 0; i < 2; i++) {
     tx = urkel_tx_create(db, NULL);
     assert(tx != NULL);
 
@@ -27,11 +27,17 @@ int main() {
 
     assert(urkel_tx_commit(tx));
     urkel_tx_destroy(tx);
+
+    /* add empty commit after. */
+    tx = urkel_tx_create(db, NULL);
+    assert(tx != NULL);
+    assert(urkel_tx_commit(tx));
+    urkel_tx_destroy(tx);
   }
 
+  /* one last empty commit. */
   tx = urkel_tx_create(db, NULL);
   assert(tx != NULL);
-
   assert(urkel_tx_commit(tx));
   urkel_tx_destroy(tx);
 
