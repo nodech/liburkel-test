@@ -16,19 +16,24 @@ int main() {
   db = urkel_open("./tree");
   assert(db != NULL);
 
-  for (i = 0; i < 10; i++) {
+  for (i = 0; i < 1; i++) {
     tx = urkel_tx_create(db, NULL);
     assert(tx != NULL);
 
-    for (j = 0; j < 10; j++) {
-      write32(key, k++);
-      memcpy(val, key, 4);
-      urkel_hash(hash, key, 4);
-      assert(urkel_tx_insert(tx, hash, val, sizeof(val)));
-    }
+    write32(key, k++);
+    memcpy(val, key, 4);
+    urkel_hash(hash, key, 4);
+    assert(urkel_tx_insert(tx, hash, val, sizeof(val)));
+
     assert(urkel_tx_commit(tx));
     urkel_tx_destroy(tx);
   }
+
+  tx = urkel_tx_create(db, NULL);
+  assert(tx != NULL);
+
+  assert(urkel_tx_commit(tx));
+  urkel_tx_destroy(tx);
 
   urkel_close(db);
   return 0;

@@ -28,5 +28,9 @@ exports.tests = [
   {
     name: 'ten-by-ten-test',
     desc: 'Insert ten roots with ten entries each.'
+  },
+  {
+    name: 'empty-commit',
+    desc: 'Commit empty transaction.'
   }
 ];
