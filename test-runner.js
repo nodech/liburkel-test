@@ -2,9 +2,9 @@
 
 const os = require('os');
 const path = require('path');
-const cp = require('child_process');
 const {randomBytes} = require('crypto');
 const fs = require('bfile');
+const {exec} = require('./lib/util');
 
 class TestError extends Error {
   constructor(message, step, name, code) {
@@ -29,24 +29,6 @@ const getJSCmd = name => 'node ' + path.join(__dirname, 'js', `${name}.js`);
 const getCheckCmd = (name) => {
   return 'node ' + path.join(__dirname, 'check', `${name}.js`);
 };
-
-function exec(name, cwd, timeout) {
-  return new Promise((resolve, reject) => {
-    cp.exec(name, { cwd, timeout }, (err, stdout, stderr) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-
-      if (stderr.length !== 0) {
-        reject(new Error('STDERR: ' + stderr.toString('utf8').trim()));
-        return;
-      }
-
-      resolve(stdout.toString('utf8').trim());
-    });
-  });
-}
 
 async function setupTree(root) {
   const treePath = path.join(root, 'tree');

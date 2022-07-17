@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <urkel.h>
+#include <stdio.h>
 
 int main() {
   uint8_t key[32];

@@ -21,10 +21,10 @@ exports.tests = [
     desc: 'Empty tree is the same.',
     setup: false
   },
-  {
-    name: 'single-root-tree-test',
-    desc: 'Insert single entry.'
-  },
+  // {
+  //   name: 'single-root-tree-test',
+  //   desc: 'Insert single entry.'
+  // },
   {
     name: 'ten-by-ten-test',
     desc: 'Insert ten roots with ten entries each.'

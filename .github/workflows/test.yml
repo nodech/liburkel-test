@@ -1,0 +1,48 @@
+name: Integration tests
+
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+            submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Update npm
+        run: npm i --location=global npm
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Apply patches
+        run: ./scripts/patch.sh
+
+      - name: Create Build Environment
+        run: cmake -E make_directory build 
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DURKEL_ENABLE_DEBUG=ON
+
+      - name: Build
+        working-directory: build
+        shell: bash
+        run: cmake --build . --config $BUILD_TYPE
+
+      - name: Test
+        run: node test-runner.js
