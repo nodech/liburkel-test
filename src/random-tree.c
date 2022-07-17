@@ -24,19 +24,16 @@ rand_bytes(int32_t *seed, uint8_t *data, uint8_t n) {
 void
 rand_key(int32_t *seed, uint8_t *hash) {
   uint8_t key_size = random_stuff_byte(seed);
-  uint8_t *key = malloc(key_size);
+  uint8_t key[256];
   rand_bytes(seed, key, key_size);
   urkel_hash(hash, key, key_size);
-  free(key);
 }
 
 void
-rand_value(int32_t *seed, uint8_t **value, uint8_t *size) {
+rand_value(int32_t *seed, uint8_t *value, uint8_t *size) {
   uint8_t vsize = random_stuff_byte(seed);
-  uint8_t *vdata = malloc(vsize);
 
-  rand_bytes(seed, vdata, vsize);
-  *value = vdata;
+  rand_bytes(seed, value, vsize);
   *size = vsize;
 }
 
@@ -77,13 +74,12 @@ run(int32_t *seed) {
     switch (decision) {
       case OP_INSERT: {
         uint8_t key_hash[32] = {0};
-        uint8_t *value;
+        uint8_t value[256];
         uint8_t val_size = 0;
 
         rand_key(seed, key_hash);
-        rand_value(seed, &value, &val_size);
+        rand_value(seed, value, &val_size);
         assert(urkel_tx_insert(tx, key_hash, value, val_size));
-        free(value);
 
         break;
       }
