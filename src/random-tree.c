@@ -8,11 +8,17 @@
 
 #include "util.h"
 
-#define MAX_ITER 80
+#define MAX_ITER 1000
+#define HASH_SIZE 32
 
 #define OP_COMMIT 1
 #define OP_INSERT 2
 #define OP_REVERT 3
+
+struct root_list {
+  uint8_t roots[MAX_ITER][HASH_SIZE];
+  uint32_t size;
+};
 
 void
 rand_bytes(int32_t *seed, uint8_t *data, uint8_t n) {
@@ -45,9 +51,9 @@ get_decision(int32_t *seed) {
   if (byte <= 25)
     return OP_COMMIT;
 
-  /* [> around 5 % <] */
-  /* if (byte <= 38) */
-  /*   return OP_REVERT; */
+  /* around 5 % */
+  if (byte <= 38)
+    return OP_REVERT;
 
   /* around 85 % */
   return OP_INSERT;
@@ -58,9 +64,8 @@ run(int32_t *seed) {
   urkel_t *db;
   urkel_tx_t *tx;
 
-  /* uint32_t root_len = 0; */
-  /* uint8_t roots[MAX_ITER][4]; */
   int i;
+  struct root_list roots = {0};
 
   db = urkel_open("./tree");
   assert(db != NULL);
@@ -73,7 +78,7 @@ run(int32_t *seed) {
 
     switch (decision) {
       case OP_INSERT: {
-        uint8_t key_hash[32] = {0};
+        uint8_t key_hash[HASH_SIZE] = {0};
         uint8_t value[256];
         uint8_t val_size = 0;
 
@@ -87,12 +92,23 @@ run(int32_t *seed) {
         assert(urkel_tx_commit(tx));
         urkel_tx_destroy(tx);
         tx = urkel_tx_create(db, NULL);
+        urkel_root(db, roots.roots[roots.size]);
+        roots.size++;
         assert(tx != NULL);
         break;
       }
-      /* case OP_REVERT: { */
-      /*   break; */
-      /* } */
+      case OP_REVERT: {
+        uint8_t rnum;
+        uint8_t *root;
+
+        if (roots.size == 0)
+          break;
+
+        rnum = random_stuff_byte(seed);
+        root = roots.roots[rnum % roots.size];
+        urkel_inject(db, root);
+        break;
+      }
       default: {
         assert(0);
       }

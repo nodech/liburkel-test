@@ -5,7 +5,7 @@ const {BLAKE2b} = require('bcrypto');
 const {Tree} = require('urkel');
 const {randomStuffByte} = require('../lib/rand');
 
-const MAX_ITER = 80;
+const MAX_ITER = 1000;
 
 const OP_COMMIT = 1;
 const OP_INSERT = 2;
@@ -40,9 +40,9 @@ function getDecision(nextRandByte) {
   if (byte <= 25)
     return OP_COMMIT;
 
-  // // around 5 %
-  // if (byte <= 38)
-  //   return OP_REVERT;
+  // around 5 %
+  if (byte <= 38)
+    return OP_REVERT;
 
   // around 85 %
   return OP_INSERT;
@@ -86,7 +86,8 @@ async function run(nextRandByte) {
         if (roots.length === 0)
           break;
 
-        const root = roots[nextRandByte() % roots.length];
+        const rnum = nextRandByte();
+        const root = roots[rnum % roots.length];
         await tree.inject(root);
         break;
       }
