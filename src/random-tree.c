@@ -8,7 +8,7 @@
 
 #include "util.h"
 
-#define MAX_ITER 1000
+#define MAX_ITER 40000
 #define HASH_SIZE 32
 
 #define OP_COMMIT 1

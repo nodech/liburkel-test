@@ -5,7 +5,7 @@ const {BLAKE2b} = require('bcrypto');
 const {Tree} = require('urkel');
 const {randomStuffByte} = require('../lib/rand');
 
-const MAX_ITER = 1000;
+const MAX_ITER = 40000;
 
 const OP_COMMIT = 1;
 const OP_INSERT = 2;
