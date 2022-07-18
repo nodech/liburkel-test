@@ -1,25 +1,16 @@
 Liburkel integration tests
 ==========================
 
-### Apply patches
-There are some changes that have not been backported to the upstream.
-So we need to apply them. Make sure to run `npm install` before running
-patch.
-
+## Clone, build and run tests
 ```
-  $ ./scripts/patch.sh
-```
-
-### Build C parts
-```
-  $ mkdir build/
-  $ cd build
-  $ cmake ..
-  $ make
-```
-
-### Running tests
-From the root of the project run:
-```
-  $ node test-runner.js
+  git clone --recursive https://github.com/nodech/liburkel-test
+  cd liburkel-test
+  npm install
+  ./scripts/patch.sh
+  mkdir build
+  cd build
+  cmake ..
+  cmake --build .
+  cd ..
+  node test-runner.js
 ```
