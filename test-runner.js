@@ -2,9 +2,9 @@
 
 const os = require('os');
 const path = require('path');
-const cp = require('child_process');
 const {randomBytes} = require('crypto');
 const fs = require('bfile');
+const {exec} = require('./lib/util');
 
 class TestError extends Error {
   constructor(message, step, name, code) {
@@ -30,24 +30,6 @@ const getCheckCmd = (name) => {
   return 'node ' + path.join(__dirname, 'check', `${name}.js`);
 };
 
-function exec(name, cwd, timeout) {
-  return new Promise((resolve, reject) => {
-    cp.exec(name, { cwd, timeout }, (err, stdout, stderr) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-
-      if (stderr.length !== 0) {
-        reject(new Error('STDERR: ' + stderr.toString('utf8').trim()));
-        return;
-      }
-
-      resolve(stdout.toString('utf8').trim());
-    });
-  });
-}
-
 async function setupTree(root) {
   const treePath = path.join(root, 'tree');
 
@@ -56,74 +38,83 @@ async function setupTree(root) {
   await fs.writeFile(path.join(treePath, 'meta'), Buffer.alloc(32, 0x89));
 }
 
-const tmpdir = getTmpDir();
-(async () => {
-  console.log(`Running checks in ${tmpdir}`);
-  for (const test of tests) {
-    const {name, desc} = test;
-    let setup = test.setup;
+function simpleArgs() {
+  const config = {
+    bail: false
+  };
 
-    console.log(`Testing ${name}: ${desc}`);
-    // prepare directory
-    const testdir = path.join(tmpdir, name);
-    const cdir = path.join(testdir, 'c');
-    const jsdir = path.join(testdir, 'js');
-
-    await fs.mkdirp(cdir);
-    await fs.mkdirp(jsdir);
-
-    if (setup == null)
-      setup = true;
-
-    if (setup) {
-      // Make trees deterministic.
-      await setupTree(cdir);
-      await setupTree(jsdir);
-    }
-
-    let cmd, res;
-
-    cmd = getCBin(name);
-
-    try {
-      console.log(`  Running C version for: ${name}.`);
-      res = await exec(`"${cmd}"`, cdir);
-
-      if (res.length !== 0)
-        console.log(res);
-    } catch (e) {
-      throw new TestError(e.message, 'c', name, e.code);
-    }
-
-    cmd = getJSCmd(name);
-    try {
-      console.log(`  Running JS version for: ${name}.`);
-      res = await exec(cmd, jsdir);
-
-      if (res.length !== 0)
-        console.log(res);
-    } catch (e) {
-      throw new TestError(e.message, 'js', name, e.code);
-    }
-
-    // run Checker
-    cmd = getCheckCmd(name);
-    try {
-      console.log(`  Running check for: ${name}...`);
-      res = await exec(`${cmd} ${cdir} ${jsdir}`, testdir);
-
-      if (res.length !== 0)
-        console.log(res);
-    } catch (e) {
-      throw new TestError(e.message, 'check', name, e.code);
-    }
+  for (const arg of process.argv) {
+    if (arg === '-b')
+      config.bail = true;
   }
 
-  console.log(`Cleaning up ${tmpdir}...`);
-  await fs.rimraf(tmpdir);
-})().catch((e) => {
+  return config;
+}
+
+async function runTest(tmpdir, test) {
+  const {name, desc} = test;
+  let setup = test.setup;
+
+  console.log(`Testing ${name}: ${desc}`);
+  // prepare directory
+  const testdir = path.join(tmpdir, name);
+  const cdir = path.join(testdir, 'c');
+  const jsdir = path.join(testdir, 'js');
+
+  await fs.mkdirp(cdir);
+  await fs.mkdirp(jsdir);
+
+  if (setup == null)
+    setup = true;
+
+  if (setup) {
+    // Make trees deterministic.
+    await setupTree(cdir);
+    await setupTree(jsdir);
+  }
+
+  let cmd, res;
+
+  cmd = getCBin(name);
+
+  try {
+    console.log(`  Running C version for: ${name}.`);
+    res = await exec(`"${cmd}"`, cdir);
+
+    if (res.length !== 0)
+      console.log(res);
+  } catch (e) {
+    throw new TestError(e.message, 'c', name, e.code);
+  }
+
+  cmd = getJSCmd(name);
+  try {
+    console.log(`  Running JS version for: ${name}.`);
+    res = await exec(cmd, jsdir);
+
+    if (res.length !== 0)
+      console.log(res);
+  } catch (e) {
+    throw new TestError(e.message, 'js', name, e.code);
+  }
+
+  // run Checker
+  cmd = getCheckCmd(name);
+  try {
+    console.log(`  Running check for: ${name}...`);
+    res = await exec(`${cmd} ${cdir} ${jsdir}`, testdir);
+
+    if (res.length !== 0)
+      console.log(res);
+  } catch (e) {
+    throw new TestError(e.message, 'check', name, e.code);
+  }
+}
+
+function logError(tmpdir, e) {
   console.error('');
   console.error(`Test directory: ${tmpdir}`);
+  console.error(`Test: ${e.name}`);
   switch (e.step) {
     case 'c': {
       console.error(`Failed C test run for: ${e.name}, exit code: ${e.code}`);
@@ -145,5 +136,35 @@ const tmpdir = getTmpDir();
       console.error(e);
     }
   }
+}
+
+const tmpdir = getTmpDir();
+
+(async () => {
+  const cfg = simpleArgs();
+  const errors = [];
+
+  console.log(`Running checks in ${tmpdir}`);
+  for (const test of tests) {
+    try {
+      await runTest(tmpdir, test);
+    } catch (e) {
+      if (cfg.bail)
+        throw e;
+
+      errors.push(e);
+    }
+  }
+
+  if (errors.length) {
+    for (const error of errors)
+      logError(tmpdir, error);
+    process.exit(1);
+  }
+
+  console.log(`Cleaning up ${tmpdir}...`);
+  await fs.rimraf(tmpdir);
+})().catch((e) => {
+  logError(tmpdir, e);
   process.exit(1);
 });
