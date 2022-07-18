@@ -19,6 +19,6 @@
   "dependencies": {
     "bcrypto": "^5.4.0",
     "bfile": "^0.2.2",
-    "urkel": "^1.0.2"
+    "urkel": "1.0.2"
   }
 }
