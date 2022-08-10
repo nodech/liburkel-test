@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 const {BLAKE2b} = require('bcrypto');
-const {Tree} = require('urkel');
+const {Tree} = require('nurkel');
 const {randomStuffByte} = require('../lib/rand');
 
 const MAX_ITER = 40000;
@@ -55,8 +55,6 @@ function getDecision(nextRandByte) {
 
 async function run(nextRandByte) {
   const tree = new Tree({
-    hash: BLAKE2b,
-    bits: 256,
     prefix: './tree'
   });
 
@@ -64,6 +62,7 @@ async function run(nextRandByte) {
 
   const roots = [];
   let txn = tree.txn();
+  await txn.open();
   for (let i = 0; i < MAX_ITER; i++) {
     const decision = getDecision(nextRandByte);
 
@@ -78,7 +77,9 @@ async function run(nextRandByte) {
       case OP_COMMIT: {
         const root = await txn.commit();
         roots.push(root);
+        await txn.close();
         txn = tree.txn();
+        await txn.open();
         break;
       }
 
@@ -99,6 +100,8 @@ async function run(nextRandByte) {
   }
 
   await txn.commit();
+  await txn.close();
+
   await tree.close();
 }
 

@@ -26,6 +26,7 @@ const {tests} = require('./config');
 
 const getCBin = name => path.join(__dirname, 'build', name);
 const getJSCmd = name => 'node ' + path.join(__dirname, 'js', `${name}.js`);
+const getNJSCmd = name => 'node ' + path.join(__dirname, 'njs', `${name}.js`);
 const getCheckCmd = (name) => {
   return 'node ' + path.join(__dirname, 'check', `${name}.js`);
 };
@@ -60,9 +61,11 @@ async function runTest(tmpdir, test) {
   const testdir = path.join(tmpdir, name);
   const cdir = path.join(testdir, 'c');
   const jsdir = path.join(testdir, 'js');
+  const njsdir = path.join(testdir, 'njs');
 
   await fs.mkdirp(cdir);
   await fs.mkdirp(jsdir);
+  await fs.mkdirp(njsdir);
 
   if (setup == null)
     setup = true;
@@ -98,11 +101,22 @@ async function runTest(tmpdir, test) {
     throw new TestError(e.message, 'js', name, e.code);
   }
 
+  cmd = getNJSCmd(name);
+  try {
+    console.log(`  Running nurkel version for: ${name}.`);
+    res = await exec(cmd, njsdir);
+
+    if (res.length !== 0)
+      console.log(res);
+  } catch (e) {
+    throw new TestError(e.message, 'nurkel', name, e.code);
+  }
+
   // run Checker
   cmd = getCheckCmd(name);
   try {
     console.log(`  Running check for: ${name}...`);
-    res = await exec(`${cmd} ${cdir} ${jsdir}`, testdir);
+    res = await exec(`${cmd} ${cdir} ${jsdir} ${njsdir}`, testdir);
 
     if (res.length !== 0)
       console.log(res);
@@ -123,6 +137,13 @@ function logError(tmpdir, e) {
     }
     case 'js': {
       console.error(`Failed JS test run for: ${e.name}, exit code: ${e.code}`);
+      console.error(e.message);
+      break;
+    }
+    case 'nurkel': {
+      console.error(
+        `Failed nurkel test run for: ${e.name}, exit code: ${e.code}`
+      );
       console.error(e.message);
       break;
     }
