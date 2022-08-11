@@ -4,6 +4,7 @@ const assert = require('assert');
 const {BLAKE2b} = require('bcrypto');
 const {Tree} = require('urkel');
 const {randomStuffByte} = require('../lib/rand');
+const fs = require('bfile');
 
 const MAX_ITER = 40000;
 
@@ -59,10 +60,13 @@ async function run(nextRandByte) {
     bits: 256,
     prefix: './tree'
   });
+  const fd = await fs.open('./proofs', 'w');
 
   await tree.open();
 
   const roots = [];
+  const keys = [];
+
   let txn = tree.txn();
   for (let i = 0; i < MAX_ITER; i++) {
     const decision = getDecision(nextRandByte);
@@ -72,6 +76,7 @@ async function run(nextRandByte) {
         const key = randKey(nextRandByte);
         const value = randValue(nextRandByte);
         await txn.insert(key, value);
+        keys.push(key);
         break;
       }
 
@@ -96,10 +101,23 @@ async function run(nextRandByte) {
         throw new Error('Unknown decision.');
       }
     }
+
+    if (roots.length > 0 && keys.length > 0) {
+      let rnum = nextRandByte();
+      const key = keys[rnum % keys.length];
+      rnum = nextRandByte();
+      const root = roots[rnum % roots.length];
+      const snap = tree.snapshot(root);
+      const proof = await snap.prove(key);
+      const proofRaw = proof.encode(BLAKE2b, 256);
+
+      await fs.write(fd, proofRaw, 0, proofRaw.length);
+    }
   }
 
   await txn.commit();
   await tree.close();
+  await fs.close(fd);
 }
 
 (async () => {
