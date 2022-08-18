@@ -41,12 +41,20 @@ async function setupTree(root) {
 
 function simpleArgs() {
   const config = {
-    bail: false
+    bail: false,
+    testName: null
   };
 
-  for (const arg of process.argv) {
+  for (let i = 0; i < process.argv.length; i++) {
+    const arg = process.argv[i];
+
     if (arg === '-b')
       config.bail = true;
+
+    if (arg === '-n') {
+      config.testName = process.argv[i + 1];
+      i++;
+    }
   }
 
   return config;
@@ -166,7 +174,11 @@ const tmpdir = getTmpDir();
   const errors = [];
 
   console.log(`Running checks in ${tmpdir}`);
+
   for (const test of tests) {
+    if (cfg.testName && test.name !== cfg.testName)
+      continue;
+
     try {
       await runTest(tmpdir, test);
     } catch (e) {
