@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 /* This algorithm is mentioned in the ISO C standard, here extended
    for 32 bits.  */
@@ -38,4 +39,9 @@ write32(uint8_t *dst, uint32_t word) {
   dst[2] = word >> 16;
   dst[3] = word >> 24;
   return dst + 4;
+}
+
+int
+fs_rename(const char *oldpath, const char *newpath) {
+  return rename(oldpath, newpath) == 0;
 }
