@@ -1,7 +1,7 @@
-diff --git ./liburkel/src/store.c ./liburkel/src/store.c
+diff --git ./node_modules/nurkel/deps/liburkel/src/store.c ./node_modules/nurkel/deps/liburkel/src/store.c
 index 24af568..15e3796 100644
---- ./liburkel/src/store.c
-+++ ./liburkel/src/store.c
+--- ./node_modules/nurkel/deps/liburkel/src/store.c
++++ ./node_modules/nurkel/deps/liburkel/src/store.c
 @@ -20,7 +20,7 @@
   */
  

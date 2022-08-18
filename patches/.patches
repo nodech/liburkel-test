@@ -1,4 +1,6 @@
 urkel-meta.patch
 urkel-max-file.patch
 liburkel-max-file.patch
+liburkel-pr-8-fix-nodes.patch
 liburkel-pr-9-compact.patch
+liburkel-pr-10-stat.patch
