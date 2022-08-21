@@ -7,6 +7,7 @@ Liburkel integration tests
   cd liburkel-test
   npm install
   ./scripts/patch.sh
+  npm rebuild
   mkdir build
   cd build
   cmake ..

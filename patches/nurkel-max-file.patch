@@ -1,8 +1,8 @@
 diff --git ./node_modules/nurkel/deps/liburkel/src/store.c ./node_modules/nurkel/deps/liburkel/src/store.c
-index 24af568..15e3796 100644
+index 454814f..6f746e4 100644
 --- ./node_modules/nurkel/deps/liburkel/src/store.c
 +++ ./node_modules/nurkel/deps/liburkel/src/store.c
-@@ -20,7 +20,7 @@
+@@ -21,7 +21,7 @@
   */
  
  /* Max read size on linux, and lower than off_t max. */
