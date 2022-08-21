@@ -31,7 +31,12 @@ list(APPEND targets rand-test
   single-root-tree-test
   ten-by-ten-test
   empty-commit
-  random-tree)
+  random-tree
+  ten-by-ten-compact-test
+  random-tree-compact
+  inject-then-commit
+  inject-then-commit-newfile
+  generate-tree)
 
 foreach (target IN LISTS targets)
   add_executable(${target} ${general_sources} src/${target}.c)

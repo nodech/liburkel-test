@@ -36,5 +36,22 @@ exports.tests = [
   {
     name: 'random-tree',
     desc: 'Generate random tree'
+  },
+  {
+    name: 'ten-by-ten-compact-test',
+    desc: 'Insert ten roots with ten entries and compact.'
+  },
+  {
+    name: 'random-tree-compact',
+    desc: 'Generate random tree and then compact.'
+  },
+  {
+    name: 'inject-then-commit',
+    desc: 'Create tx, inject and then commit.'
+  },
+  {
+    name: 'inject-then-commit-newfile',
+    desc: 'Create tx, inject and then commit on the edge of new file',
+    prep: ['generateTree', 2064464]
   }
 ];

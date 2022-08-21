@@ -1,6 +1,8 @@
 Liburkel integration tests
 ==========================
 
+Only supports linux (maybe mac?).
+
 ## Clone, build and run tests
 ```
   git clone --recursive https://github.com/nodech/liburkel-test

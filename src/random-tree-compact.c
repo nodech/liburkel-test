@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -52,15 +51,15 @@ uint8_t
 get_decision(int32_t *seed) {
   uint8_t byte = random_stuff_byte(seed);
 
-  /* around 10 % */
-  if (byte <= 25)
+  /* around 4 % */
+  if (byte <= 10)
     return OP_COMMIT;
 
-  /* around 5 % */
-  if (byte <= 38)
+  /* around 1 % */
+  if (byte <= 13)
     return OP_REVERT;
 
-  /* around 85 % */
+  /* around 95 % */
   return OP_INSERT;
 }
 
@@ -68,16 +67,12 @@ void
 run(int32_t *seed) {
   urkel_t *db;
   urkel_tx_t *tx;
-  FILE *proof_fd;
 
   int i;
   struct root_list *roots = malloc(sizeof(struct root_list));
   struct key_list *keys = malloc(sizeof(struct key_list));
   memset(roots, 0, sizeof(struct root_list));
   memset(keys, 0, sizeof(struct key_list));
-
-  proof_fd = fopen("./proofs", "w");
-  assert(proof_fd != NULL);
 
   db = urkel_open("./tree");
   assert(db != NULL);
@@ -127,28 +122,14 @@ run(int32_t *seed) {
         assert(0);
       }
     }
-
-    {
-      uint8_t *proof, *key, *root;
-      uint8_t rnum;
-      size_t proof_len;
-
-      if (roots->size > 0 && keys->size > 0) {
-        rnum = random_stuff_byte(seed);
-        key = keys->keys[rnum % keys->size];
-        rnum = random_stuff_byte(seed);
-        root = roots->roots[rnum % roots->size];
-
-        urkel_prove(db, &proof, &proof_len, key, root);
-        fwrite(proof, 1, proof_len, proof_fd);
-      }
-    }
   }
 
   assert(urkel_tx_commit(tx));
   urkel_tx_destroy(tx);
   urkel_close(db);
-  fclose(proof_fd);
+  urkel_compact("./tree.compact", "./tree", NULL);
+  urkel_destroy("./tree");
+  fs_rename("./tree.compact", "./tree");
 }
 
 int main(int argc, char **argv) {
@@ -156,7 +137,6 @@ int main(int argc, char **argv) {
 
   if (argc > 1)
     seed = atoi(argv[1]);
-
 
   run(&seed);
 

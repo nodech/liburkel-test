@@ -5,7 +5,7 @@ const util = require('../lib/util');
 
 const CDIR = process.argv[2];
 const JSDIR = process.argv[3];
-const NJSDIR = process.argv[3];
+const NJSDIR = process.argv[4];
 const DIRNAME = 'tree';
 
 (async () => {

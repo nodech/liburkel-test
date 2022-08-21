@@ -15,6 +15,7 @@ async function insert(txn, n) {
   const tree = new Tree({
     prefix: './tree'
   });
+  let fifthRoot = null;
 
   await tree.open();
 
@@ -28,7 +29,21 @@ async function insert(txn, n) {
 
     await txn.commit();
     await txn.close();
+
+    if (i === 4)
+      fifthRoot = tree.rootHash();
   }
+
+  const txn = tree.txn();
+  await txn.open();
+
+  for (let i = 0; i < 10; i++)
+    await insert(txn, k++);
+
+  await tree.inject(fifthRoot);
+
+  await txn.commit();
+  await txn.close();
 
   await tree.close();
 })().catch((e) => {

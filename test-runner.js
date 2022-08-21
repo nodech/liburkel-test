@@ -31,6 +31,12 @@ const getCheckCmd = (name) => {
   return 'node ' + path.join(__dirname, 'check', `${name}.js`);
 };
 
+async function generateTree(root, targetSize) {
+  const treePath = path.join(root, 'tree');
+  const genTreePath = path.join(__dirname, 'build', 'generate-tree');
+  await exec(`${genTreePath} ${treePath} ${targetSize}`);
+}
+
 async function setupTree(root) {
   const treePath = path.join(root, 'tree');
 
@@ -61,7 +67,7 @@ function simpleArgs() {
 }
 
 async function runTest(tmpdir, test) {
-  const {name, desc} = test;
+  const {name, desc, prep} = test;
   let setup = test.setup;
 
   console.log(`Testing ${name}: ${desc}`);
@@ -82,6 +88,19 @@ async function runTest(tmpdir, test) {
     // Make trees deterministic.
     await setupTree(cdir);
     await setupTree(jsdir);
+    await setupTree(njsdir);
+  }
+
+  if (prep != null) {
+    switch (prep[0]) {
+      case 'generateTree':
+        await generateTree(cdir, prep[1]);
+        await generateTree(jsdir, prep[1]);
+        await generateTree(njsdir, prep[1]);
+        break;
+      default:
+        throw new Error('Could not find method: ', prep[0]);
+    }
   }
 
   let cmd, res;
