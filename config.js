@@ -52,6 +52,7 @@ exports.tests = [
   {
     name: 'inject-then-commit-newfile',
     desc: 'Create tx, inject and then commit on the edge of new file',
+    setup: false,
     prep: ['generateTree', 2064464]
   }
 ];
