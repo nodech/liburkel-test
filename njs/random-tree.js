@@ -64,14 +64,23 @@ async function run(nextRandByte) {
   const roots = [];
   const keys = [];
 
-  let txn = tree.txn();
+  let txn = tree.vtxn();
   await txn.open();
   for (let i = 0; i < MAX_ITER; i++) {
     const decision = getDecision(nextRandByte);
 
     switch (decision) {
       case OP_INSERT: {
-        const key = randKey(nextRandByte);
+        const rnum = nextRandByte();
+        let key = null;
+
+        if (rnum <= 25) {
+          const keyat = keys[nextRandByte() % keys.length];
+          key = keyat;
+        } else {
+          key = randKey(nextRandByte);
+        }
+
         const value = randValue(nextRandByte);
         await txn.insert(key, value);
         keys.push(key);
@@ -82,7 +91,7 @@ async function run(nextRandByte) {
         const root = await txn.commit();
         roots.push(root);
         await txn.close();
-        txn = tree.txn();
+        txn = tree.vtxn();
         await txn.open();
         break;
       }
@@ -110,9 +119,10 @@ async function run(nextRandByte) {
       const snap = tree.snapshot(root);
       await snap.open();
       const proof = await snap.prove(key);
+      const proofRaw = proof.encode();
 
       await snap.close();
-      await fs.write(fd, proof, 0, proof.length);
+      await fs.write(fd, proofRaw, 0, proofRaw.length);
     }
   }
 

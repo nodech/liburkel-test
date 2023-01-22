@@ -93,8 +93,16 @@ run(int32_t *seed) {
         uint8_t key_hash[HASH_SIZE] = {0};
         uint8_t value[256];
         uint8_t val_size = 0;
+        uint8_t rnum = random_stuff_byte(seed);
+        uint8_t rnum2;
 
-        rand_key(seed, key_hash);
+        if (rnum <= 25) {
+          rnum2 = random_stuff_byte(seed);
+          memcpy(key_hash, keys->keys[rnum2 % keys->size], HASH_SIZE);
+        } else {
+          rand_key(seed, key_hash);
+        }
+
         rand_value(seed, value, &val_size);
         assert(urkel_tx_insert(tx, key_hash, value, val_size));
         memcpy(keys->keys[keys->size], key_hash, HASH_SIZE);

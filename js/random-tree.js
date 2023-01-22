@@ -73,7 +73,16 @@ async function run(nextRandByte) {
 
     switch (decision) {
       case OP_INSERT: {
-        const key = randKey(nextRandByte);
+        const rnum = nextRandByte();
+        let key = null;
+
+        if (rnum <= 25) {
+          const keyat = keys[nextRandByte() % keys.length];
+          key = keyat;
+        } else {
+          key = randKey(nextRandByte);
+        }
+
         const value = randValue(nextRandByte);
         await txn.insert(key, value);
         keys.push(key);
