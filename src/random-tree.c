@@ -149,11 +149,15 @@ run(int32_t *seed) {
 
         urkel_prove(db, &proof, &proof_len, key, root);
         fwrite(proof, 1, proof_len, proof_fd);
+        free(proof);
       }
     }
   }
 
   assert(urkel_tx_commit(tx));
+
+  free(roots);
+  free(keys);
   urkel_tx_destroy(tx);
   urkel_close(db);
   fclose(proof_fd);

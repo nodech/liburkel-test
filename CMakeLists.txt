@@ -31,6 +31,7 @@ list(APPEND targets rand-test
   single-root-tree-test
   ten-by-ten-test
   empty-commit
+  empty-commit-2
   random-tree
   ten-by-ten-compact-test
   random-tree-compact

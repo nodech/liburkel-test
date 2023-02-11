@@ -125,6 +125,8 @@ run(int32_t *seed) {
   }
 
   assert(urkel_tx_commit(tx));
+  free(roots);
+  free(keys);
   urkel_tx_destroy(tx);
   urkel_close(db);
   urkel_compact("./tree.compact", "./tree", NULL);

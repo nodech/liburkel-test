@@ -48,11 +48,14 @@ int main(int argc, char **argv) {
   while (size < target_size) {
     tx = urkel_tx_create(db, NULL);
     urkel_tx_commit(tx);
+    urkel_tx_destroy(tx);
     stat(path_file, &fstat);
 
     size = fstat.st_size;
   }
 
+  free(path_file);
+  free(path_meta);
   urkel_close(db);
   return 0;
 }
