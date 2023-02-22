@@ -2,6 +2,7 @@
 
 const {BLAKE2b} = require('bcrypto');
 const {Tree} = require('nurkel');
+const {createTXN} = require('../lib/util');
 
 (async () => {
   const tree = new Tree({
@@ -10,7 +11,7 @@ const {Tree} = require('nurkel');
 
   await tree.open();
 
-  const txn = tree.txn();
+  const txn = createTXN(tree);
   const key = BLAKE2b.digest(Buffer.alloc(4, 0x01));
   const value = Buffer.alloc(4, 0x01);
 

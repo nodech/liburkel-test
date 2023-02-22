@@ -5,12 +5,15 @@ const {BLAKE2b} = require('bcrypto');
 const {Tree} = require('nurkel');
 const {randomStuffByte} = require('../lib/rand');
 const fs = require('bfile');
+const {createTXN} = require('../lib/util');
 
 const MAX_ITER = 40000;
 
 const OP_COMMIT = 1;
 const OP_INSERT = 2;
 const OP_REVERT = 3;
+const OP_UPDATE = 4;
+const OP_REMOVE = 5;
 
 function randBytes(nextRandByte, n) {
   const buf = Buffer.alloc(n, 0x00);
@@ -36,16 +39,35 @@ function randValue(nextRandByte) {
 
 function getDecision(nextRandByte) {
   const byte = nextRandByte();
+  let prob = 0;
 
-  // around 10 %
-  if (byte <= 25)
+  // 10 %
+  prob += 25;
+
+  // around 10%
+  if (byte <= prob)
     return OP_COMMIT;
 
-  // around 5 %
-  if (byte <= 38)
+  // around 10%
+  prob += 25;
+
+  if (byte <= prob)
+    return OP_UPDATE;
+
+  // around 5%
+  prob += 13;
+
+  if (byte <= prob)
     return OP_REVERT;
 
-  // around 85 %
+  // around 5%
+  prob += 13;
+
+  // around 5%
+  if (byte <= prob)
+    return OP_REMOVE;
+
+  // around 70%
   return OP_INSERT;
 }
 
@@ -64,26 +86,43 @@ async function run(nextRandByte) {
   const roots = [];
   const keys = [];
 
-  let txn = tree.vtxn();
+  let txn = createTXN(tree);
   await txn.open();
   for (let i = 0; i < MAX_ITER; i++) {
     const decision = getDecision(nextRandByte);
 
     switch (decision) {
       case OP_INSERT: {
-        const rnum = nextRandByte();
-        let key = null;
-
-        if (rnum <= 25) {
-          const keyat = keys[nextRandByte() % keys.length];
-          key = keyat;
-        } else {
-          key = randKey(nextRandByte);
-        }
-
+        const key = randKey(nextRandByte);
         const value = randValue(nextRandByte);
         await txn.insert(key, value);
         keys.push(key);
+        break;
+      }
+
+      case OP_UPDATE: {
+        const key = keys[nextRandByte() % keys.length];
+
+        if (keys.length === 0)
+          break;
+
+        const value = randValue(nextRandByte);
+
+        await txn.insert(key, value);
+        break;
+      }
+
+      case OP_REMOVE: {
+        const rnum = nextRandByte();
+        const key = keys[rnum % keys.length];
+
+        if (keys.length === 0)
+          break;
+
+        if (!await txn.has(key))
+          break;
+
+        await txn.remove(key);
         break;
       }
 
@@ -91,7 +130,7 @@ async function run(nextRandByte) {
         const root = await txn.commit();
         roots.push(root);
         await txn.close();
-        txn = tree.vtxn();
+        txn = createTXN(tree);
         await txn.open();
         break;
       }

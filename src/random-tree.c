@@ -14,6 +14,8 @@
 #define OP_COMMIT 1
 #define OP_INSERT 2
 #define OP_REVERT 3
+#define OP_UPDATE 4
+#define OP_REMOVE 5
 
 struct root_list {
   uint8_t roots[MAX_ITER][HASH_SIZE];
@@ -51,16 +53,33 @@ rand_value(int32_t *seed, uint8_t *value, uint8_t *size) {
 uint8_t
 get_decision(int32_t *seed) {
   uint8_t byte = random_stuff_byte(seed);
+  uint8_t prob = 0;
 
-  /* around 10 % */
-  if (byte <= 25)
+  /* around 10% */
+  prob += 25;
+
+  if (byte <= prob)
     return OP_COMMIT;
 
-  /* around 5 % */
-  if (byte <= 38)
+  /* around 10% */
+  prob += 25;
+
+  if (byte <= prob)
+    return OP_UPDATE;
+
+  /* around 5% */
+  prob += 13;
+
+  if (byte <= prob)
     return OP_REVERT;
 
-  /* around 85 % */
+  /* around 5% */
+  prob += 13;
+
+  if (byte <= prob)
+    return OP_REMOVE;
+
+  /* around 70 % */
   return OP_INSERT;
 }
 
@@ -93,16 +112,8 @@ run(int32_t *seed) {
         uint8_t key_hash[HASH_SIZE] = {0};
         uint8_t value[256];
         uint8_t val_size = 0;
-        uint8_t rnum = random_stuff_byte(seed);
-        uint8_t rnum2;
 
-        if (rnum <= 25) {
-          rnum2 = random_stuff_byte(seed);
-          memcpy(key_hash, keys->keys[rnum2 % keys->size], HASH_SIZE);
-        } else {
-          rand_key(seed, key_hash);
-        }
-
+        rand_key(seed, key_hash);
         rand_value(seed, value, &val_size);
         assert(urkel_tx_insert(tx, key_hash, value, val_size));
         memcpy(keys->keys[keys->size], key_hash, HASH_SIZE);
@@ -110,6 +121,38 @@ run(int32_t *seed) {
 
         break;
       }
+
+      case OP_UPDATE: {
+        uint8_t rnum = random_stuff_byte(seed);
+        uint8_t key_hash[HASH_SIZE] = {0};
+        uint8_t value[256];
+        uint8_t val_size = 0;
+
+        if (keys->size == 0)
+          break;
+
+        memcpy(key_hash, keys->keys[rnum % keys->size], HASH_SIZE);
+        rand_value(seed, value, &val_size);
+        assert(urkel_tx_insert(tx, key_hash, value, val_size));
+        break;
+      }
+
+      case OP_REMOVE: {
+        uint8_t rnum = random_stuff_byte(seed);
+        uint8_t key_hash[HASH_SIZE] = {0};
+
+        if (keys->size == 0)
+          break;
+
+        memcpy(key_hash, keys->keys[rnum % keys->size], HASH_SIZE);
+
+        if (!urkel_tx_has(tx, key_hash))
+          break;
+
+        assert(urkel_tx_remove(tx, key_hash));
+        break;
+      }
+
       case OP_COMMIT: {
         assert(urkel_tx_commit(tx));
         urkel_tx_destroy(tx);

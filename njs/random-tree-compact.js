@@ -5,6 +5,7 @@ const assert = require('assert');
 const {BLAKE2b} = require('bcrypto');
 const {Tree} = require('nurkel');
 const {randomStuffByte} = require('../lib/rand');
+const {createTXN} = require('../lib/util');
 
 const MAX_ITER = 40000;
 
@@ -63,7 +64,7 @@ async function run(nextRandByte) {
   const roots = [];
   const keys = [];
 
-  let txn = tree.txn();
+  let txn = createTXN(tree);
   await txn.open();
   for (let i = 0; i < MAX_ITER; i++) {
     const decision = getDecision(nextRandByte);
@@ -81,7 +82,7 @@ async function run(nextRandByte) {
         const root = await txn.commit();
         roots.push(root);
         await txn.close();
-        txn = tree.txn();
+        txn = createTXN(tree);
         await txn.open();
         break;
       }

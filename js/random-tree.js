@@ -11,6 +11,8 @@ const MAX_ITER = 40000;
 const OP_COMMIT = 1;
 const OP_INSERT = 2;
 const OP_REVERT = 3;
+const OP_UPDATE = 4;
+const OP_REMOVE = 5;
 
 function randBytes(nextRandByte, n) {
   const buf = Buffer.alloc(n, 0x00);
@@ -36,16 +38,34 @@ function randValue(nextRandByte) {
 
 function getDecision(nextRandByte) {
   const byte = nextRandByte();
+  let prob = 0;
 
-  // around 10 %
-  if (byte <= 25)
+  // 10 %
+  prob += 25;
+
+  // around 10%
+  if (byte <= prob)
     return OP_COMMIT;
 
-  // around 5 %
-  if (byte <= 38)
+  // around 10%
+  prob += 25;
+
+  if (byte <= prob)
+    return OP_UPDATE;
+
+  // around 5%
+  prob += 13;
+
+  if (byte <= prob)
     return OP_REVERT;
 
-  // around 85 %
+  // around 5%
+  prob += 13;
+
+  if (byte <= prob)
+    return OP_REMOVE;
+
+  // around 70 %
   return OP_INSERT;
 }
 
@@ -73,19 +93,32 @@ async function run(nextRandByte) {
 
     switch (decision) {
       case OP_INSERT: {
-        const rnum = nextRandByte();
-        let key = null;
-
-        if (rnum <= 25) {
-          const keyat = keys[nextRandByte() % keys.length];
-          key = keyat;
-        } else {
-          key = randKey(nextRandByte);
-        }
-
+        const key = randKey(nextRandByte);
         const value = randValue(nextRandByte);
         await txn.insert(key, value);
         keys.push(key);
+        break;
+      }
+
+      case OP_UPDATE: {
+        const key = keys[nextRandByte() % keys.length];
+
+        if (keys.length === 0)
+          break;
+
+        const value = randValue(nextRandByte);
+
+        await txn.insert(key, value);
+        break;
+      }
+
+      case OP_REMOVE: {
+        const key = keys[nextRandByte() % keys.length];
+
+        if (keys.length === 0)
+          break;
+
+        await txn.remove(key);
         break;
       }
 

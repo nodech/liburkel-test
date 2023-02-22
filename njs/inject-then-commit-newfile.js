@@ -1,6 +1,7 @@
 'use strict';
 
 const {Tree} = require('nurkel');
+const {createTXN} = require('../lib/util');
 
 async function insert(txn, n) {
   const key = Buffer.alloc(4, 0x00);
@@ -21,7 +22,7 @@ async function insert(txn, n) {
 
   let k = 0;
   for (let i = 0; i < 10; i++) {
-    const txn = tree.txn();
+    const txn = createTXN(tree);
     await txn.open();
 
     for (let j = 0; j < 10; j++)
@@ -34,7 +35,7 @@ async function insert(txn, n) {
       fifthRoot = tree.rootHash();
   }
 
-  const txn = tree.txn();
+  const txn = createTXN(tree);
   await txn.open();
 
   for (let i = 0; i < 10; i++)
